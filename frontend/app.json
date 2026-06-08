@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Arena Beach",
+    "slug": "arena-beach-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "sdkVersion": "51.0.0",
+    "platforms": ["ios", "android"],
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.arena.beach"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O app precisa de acesso à galeria para adicionar fotos das quadras.",
+          "cameraPermission": "O app precisa de acesso à câmera para tirar fotos das quadras."
+        }
+      ]
+    ]
+  }
+}
