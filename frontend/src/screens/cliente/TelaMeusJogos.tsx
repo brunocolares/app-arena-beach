@@ -1,17 +1,23 @@
-import React from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, ActivityIndicator
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import { api } from '../../shared/api';
-import { Reserva } from '../../shared/tipos';
-import { useAuth } from '../../contexto/AuthContexto';
-import { Cores, Espacamento, Tipografia } from '../../styles/tema';
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
+import { api } from "../../shared/api";
+import { Reserva } from "../../shared/tipos";
+import { useAuth } from "../../contexto/AuthContexto";
+import { Cores, Espacamento, Tipografia } from "../../styles/tema";
 
 async function buscarMinhasReservas(): Promise<Reserva[]> {
-  const resposta = await api.get('/reservas/minhas');
+  const resposta = await api.get("/reservas/minhas");
   return resposta.data;
 }
 
@@ -20,14 +26,14 @@ async function cancelarReserva(id: string): Promise<void> {
 }
 
 function formatarDataHora(data: string, hora: string): string {
-  const [ano, mes, dia] = data.split('-');
+  const [ano, mes, dia] = data.split("-");
   return `${dia}/${mes}/${ano} às ${hora}`;
 }
 
 function parseDateLocal(dataReserva: string, hora: string): Date {
   // Constrói Date com valores locais para evitar interpretação UTC no Android
-  const parteData = dataReserva.trim().split('-').map(Number);
-  const parteHora = hora.trim().split(':').map(Number);
+  const parteData = dataReserva.trim().split("-").map(Number);
+  const parteHora = hora.trim().split(":").map(Number);
   const ano = parteData[0];
   const mes = parteData[1] - 1; // meses em JS são 0-indexed
   const dia = parteData[2];
@@ -42,7 +48,11 @@ function isFuturo(dataReserva: string, horaInicio: string): boolean {
   return dataHoraReserva > agora;
 }
 
-function isEmAndamento(dataReserva: string, horaInicio: string, horaFim: string): boolean {
+function isEmAndamento(
+  dataReserva: string,
+  horaInicio: string,
+  horaFim: string,
+): boolean {
   const agora = new Date();
   const inicio = parseDateLocal(dataReserva, horaInicio);
   const fim = parseDateLocal(dataReserva, horaFim);
@@ -54,9 +64,10 @@ export function TelaMeusJogos() {
   const navegacao = useNavigation<any>();
   const { autenticado } = useAuth();
   const queryClient = useQueryClient();
+  const [filtroHistorico, setFiltroHistorico] = useState("Todos");
 
   const { data: reservas, isLoading } = useQuery({
-    queryKey: ['minhas-reservas'],
+    queryKey: ["minhas-reservas"],
     queryFn: buscarMinhasReservas,
     enabled: autenticado,
   });
@@ -64,22 +75,26 @@ export function TelaMeusJogos() {
   const mutacaoCancelar = useMutation({
     mutationFn: cancelarReserva,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['minhas-reservas'] });
-      Alert.alert('Sucesso', 'Reserva cancelada com sucesso.');
+      queryClient.invalidateQueries({ queryKey: ["minhas-reservas"] });
+      Alert.alert("Sucesso", "Reserva cancelada com sucesso.");
     },
     onError: (erro: Error) => {
-      Alert.alert('Erro', erro.message);
+      Alert.alert("Erro", erro.message);
     },
   });
 
   function aoCancelar(reserva: Reserva) {
     Alert.alert(
-      'Cancelar reserva',
-      'Tem certeza que deseja cancelar este jogo?',
+      "Cancelar reserva",
+      "Tem certeza que deseja cancelar este jogo?",
       [
-        { text: 'Não', style: 'cancel' },
-        { text: 'Sim, cancelar', style: 'destructive', onPress: () => mutacaoCancelar.mutate(reserva.id) },
-      ]
+        { text: "Não", style: "cancel" },
+        {
+          text: "Sim, cancelar",
+          style: "destructive",
+          onPress: () => mutacaoCancelar.mutate(reserva.id),
+        },
+      ],
     );
   }
 
@@ -94,7 +109,7 @@ export function TelaMeusJogos() {
           <Text style={estilos.textoVazio}>Faça login para ver seus jogos</Text>
           <TouchableOpacity
             style={estilos.botaoLogin}
-            onPress={() => navegacao.navigate('Login' as never)}
+            onPress={() => navegacao.navigate("Login" as never)}
           >
             <Text style={estilos.textoBotaoLogin}>Entrar</Text>
           </TouchableOpacity>
@@ -106,16 +121,79 @@ export function TelaMeusJogos() {
   // Usa a data/hora como fonte de verdade para classificar, ignorando o status do backend
   // pois o backend pode marcar como 'concluida' antes do cliente atualizar a tela
   const todas = reservas || [];
-  const canceladas = todas.filter(r => r.status === 'cancelada');
-  const naoCanceladas = todas.filter(r => r.status !== 'cancelada');
-  const emAndamento = naoCanceladas.filter(r => isEmAndamento(r.data_reserva, r.hora_inicio, r.hora_fim));
-  const futuras = naoCanceladas.filter(r => isFuturo(r.data_reserva, r.hora_inicio));
-  const passadas = naoCanceladas.filter(r => !isFuturo(r.data_reserva, r.hora_inicio) && !isEmAndamento(r.data_reserva, r.hora_inicio, r.hora_fim));
+  const canceladas = todas.filter((r) => r.status === "cancelada");
+  const naoCanceladas = todas.filter((r) => r.status !== "cancelada");
+  const emAndamento = naoCanceladas.filter((r) =>
+    isEmAndamento(r.data_reserva, r.hora_inicio, r.hora_fim),
+  );
+  const futuras = naoCanceladas.filter((r) =>
+    isFuturo(r.data_reserva, r.hora_inicio),
+  );
+  const passadas = naoCanceladas.filter(
+    (r) =>
+      !isFuturo(r.data_reserva, r.hora_inicio) &&
+      !isEmAndamento(r.data_reserva, r.hora_inicio, r.hora_fim),
+  );
+
+  const passadasFiltradas = passadas.filter((reserva) => {
+    const dataReserva = parseDateLocal(
+      reserva.data_reserva,
+      reserva.hora_inicio,
+    );
+
+    const hoje = new Date();
+
+    if (filtroHistorico === "Todos") {
+      return true;
+    }
+
+    if (filtroHistorico === "Últimos 30 dias") {
+      const trintaDiasAtras = new Date();
+      trintaDiasAtras.setDate(hoje.getDate() - 30);
+
+      return dataReserva >= trintaDiasAtras;
+    }
+
+    if (filtroHistorico === "Esta semana") {
+      const inicioSemana = new Date();
+      inicioSemana.setHours(0, 0, 0, 0);
+
+      inicioSemana.setDate(
+        hoje.getDate() - (hoje.getDay() === 0 ? 6 : hoje.getDay() - 1),
+      );
+
+      return dataReserva >= inicioSemana;
+    }
+
+    return true;
+  });
 
   return (
     <View style={[estilos.container, { paddingTop: insets.top }]}>
       <View style={estilos.cabecalho}>
         <Text style={estilos.tituloCabecalho}>Meus Jogos</Text>
+      </View>
+
+      <View style={estilos.containerFiltros}>
+        {["Todos", "Últimos 30 dias", "Esta semana"].map((item) => (
+          <TouchableOpacity
+            key={item}
+            style={[
+              estilos.chip,
+              filtroHistorico === item && estilos.chipAtivo,
+            ]}
+            onPress={() => setFiltroHistorico(item)}
+          >
+            <Text
+              style={[
+                estilos.textoChip,
+                filtroHistorico === item && estilos.textoChipAtivo,
+              ]}
+            >
+              {item}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {isLoading ? (
@@ -133,16 +211,48 @@ export function TelaMeusJogos() {
             const totalFuturas = futuras.length;
             const totalPassadas = passadas.length;
             const isFirstEmAndamento = index === 0 && totalEmAndamento > 0;
-            const isFirstFutura = index === totalEmAndamento && totalFuturas > 0;
-            const isFirstPassada = index === totalEmAndamento + totalFuturas && totalPassadas > 0;
-            const isFirstCancelada = index === totalEmAndamento + totalFuturas + totalPassadas && canceladas.length > 0;
+            const isFirstFutura =
+              index === totalEmAndamento && totalFuturas > 0;
+            const isFirstPassada =
+              index === totalEmAndamento + totalFuturas && totalPassadas > 0;
+            const isFirstCancelada =
+              index === totalEmAndamento + totalFuturas + totalPassadas &&
+              canceladas.length > 0;
             return (
               <>
-                {isFirstEmAndamento && <Text style={estilos.labelSecao}>Em andamento ({totalEmAndamento})</Text>}
-                {isFirstFutura && <Text style={[estilos.labelSecao, totalEmAndamento > 0 ? { marginTop: Espacamento.lg } : {}]}>Próximos jogos ({totalFuturas})</Text>}
-                {isFirstPassada && <Text style={[estilos.labelSecao, { marginTop: Espacamento.lg }]}>Histórico</Text>}
-                {isFirstCancelada && <Text style={[estilos.labelSecao, { marginTop: Espacamento.lg }]}>Cancelados</Text>}
-                <CardReserva reserva={item} onCancelar={() => aoCancelar(item)} />
+                {isFirstEmAndamento && (
+                  <Text style={estilos.labelSecao}>
+                    Em andamento ({totalEmAndamento})
+                  </Text>
+                )}
+                {isFirstFutura && (
+                  <Text
+                    style={[
+                      estilos.labelSecao,
+                      totalEmAndamento > 0 ? { marginTop: Espacamento.lg } : {},
+                    ]}
+                  >
+                    Próximos jogos ({totalFuturas})
+                  </Text>
+                )}
+                {isFirstPassada && (
+                  <Text
+                    style={[estilos.labelSecao, { marginTop: Espacamento.lg }]}
+                  >
+                    Histórico
+                  </Text>
+                )}
+                {isFirstCancelada && (
+                  <Text
+                    style={[estilos.labelSecao, { marginTop: Espacamento.lg }]}
+                  >
+                    Cancelados
+                  </Text>
+                )}
+                <CardReserva
+                  reserva={item}
+                  onCancelar={() => aoCancelar(item)}
+                />
               </>
             );
           }}
@@ -150,7 +260,9 @@ export function TelaMeusJogos() {
             <View style={estilos.centralizado}>
               <Text style={estilos.iconeVazio}>🏟️</Text>
               <Text style={estilos.textoVazio}>Nenhuma reserva encontrada</Text>
-              <Text style={estilos.textoSub}>Reserve sua primeira quadra na aba Home</Text>
+              <Text style={estilos.textoSub}>
+                Reserve sua primeira quadra na aba Home
+              </Text>
             </View>
           }
         />
@@ -159,42 +271,61 @@ export function TelaMeusJogos() {
   );
 }
 
-function CardReserva({ reserva, onCancelar }: { reserva: Reserva; onCancelar: () => void }) {
-  const cancelada = reserva.status === 'cancelada';
-  const emAndamento = isEmAndamento(reserva.data_reserva, reserva.hora_inicio, reserva.hora_fim);
+function CardReserva({
+  reserva,
+  onCancelar,
+}: {
+  reserva: Reserva;
+  onCancelar: () => void;
+}) {
+  const cancelada = reserva.status === "cancelada";
+  const emAndamento = isEmAndamento(
+    reserva.data_reserva,
+    reserva.hora_inicio,
+    reserva.hora_fim,
+  );
   const futuro = isFuturo(reserva.data_reserva, reserva.hora_inicio);
   const concluido = !futuro && !emAndamento && !cancelada;
 
   let badgeStyle = estilosCard.badgeAtiva;
-  let badgeTexto = 'Agendado';
-  let icone = '📅';
+  let badgeTexto = "Agendado";
+  let icone = "📅";
 
   if (cancelada) {
     badgeStyle = estilosCard.badgeCancelada;
-    badgeTexto = 'Cancelado';
-    icone = '✗';
+    badgeTexto = "Cancelado";
+    icone = "✗";
   } else if (concluido) {
     badgeStyle = estilosCard.badgePassada;
-    badgeTexto = 'Concluído';
-    icone = '✓';
+    badgeTexto = "Concluído";
+    icone = "✓";
   } else if (emAndamento) {
     badgeStyle = estilosCard.badgeEmAndamento;
-    badgeTexto = 'Em Andamento';
-    icone = '⚡';
+    badgeTexto = "Em Andamento";
+    icone = "⚡";
   }
 
   return (
-    <View style={[estilosCard.container, (concluido || cancelada) && estilosCard.passada]}>
+    <View
+      style={[
+        estilosCard.container,
+        (concluido || cancelada) && estilosCard.passada,
+      ]}
+    >
       <View style={estilosCard.linhaInfo}>
         <View style={estilosCard.iconeContainer}>
           <Text style={estilosCard.icone}>{icone}</Text>
         </View>
         <View style={estilosCard.info}>
-          <Text style={estilosCard.nomeQuadra}>{reserva.quadra?.nome_quadra || 'Quadra'}</Text>
+          <Text style={estilosCard.nomeQuadra}>
+            {reserva.quadra?.nome_quadra || "Quadra"}
+          </Text>
           <Text style={estilosCard.dataHora}>
             {formatarDataHora(reserva.data_reserva, reserva.hora_inicio)}
           </Text>
-          <Text style={estilosCard.duracao}>{reserva.hora_inicio} - {reserva.hora_fim}</Text>
+          <Text style={estilosCard.duracao}>
+            {reserva.hora_inicio} - {reserva.hora_fim}
+          </Text>
         </View>
         <View style={[estilosCard.badge, badgeStyle]}>
           <Text style={estilosCard.textoBadge}>{badgeTexto}</Text>
@@ -202,7 +333,10 @@ function CardReserva({ reserva, onCancelar }: { reserva: Reserva; onCancelar: ()
       </View>
 
       {futuro && !cancelada && (
-        <TouchableOpacity style={estilosCard.botaoCancelar} onPress={onCancelar}>
+        <TouchableOpacity
+          style={estilosCard.botaoCancelar}
+          onPress={onCancelar}
+        >
           <Text style={estilosCard.textoCancelar}>Cancelar</Text>
         </TouchableOpacity>
       )}
@@ -220,18 +354,18 @@ const estilosCard = StyleSheet.create({
     borderColor: Cores.borda,
   },
   passada: { opacity: 0.65 },
-  linhaInfo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  linhaInfo: { flexDirection: "row", alignItems: "center", gap: 12 },
   iconeContainer: {
     width: 44,
     height: 44,
     backgroundColor: Cores.fundoInput,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   icone: { fontSize: 20 },
   info: { flex: 1 },
-  nomeQuadra: { color: Cores.texto, fontSize: 15, fontWeight: '700' },
+  nomeQuadra: { color: Cores.texto, fontSize: 15, fontWeight: "700" },
   dataHora: { color: Cores.textoSecundario, fontSize: 13, marginTop: 2 },
   duracao: { color: Cores.textoSecundario, fontSize: 12, marginTop: 1 },
   badge: {
@@ -239,23 +373,52 @@ const estilosCard = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
   },
-  badgeAtiva: { backgroundColor: 'rgba(76,175,80,0.2)' },
+  badgeAtiva: { backgroundColor: "rgba(76,175,80,0.2)" },
   badgePassada: { backgroundColor: Cores.fundoInput },
-  badgeCancelada: { backgroundColor: 'rgba(255,82,82,0.2)' },
-  badgeEmAndamento: { backgroundColor: 'rgba(255,165,0,0.2)' },
-  textoBadge: { color: Cores.texto, fontSize: 11, fontWeight: '600' },
+  badgeCancelada: { backgroundColor: "rgba(255,82,82,0.2)" },
+  badgeEmAndamento: { backgroundColor: "rgba(255,165,0,0.2)" },
+  textoBadge: { color: Cores.texto, fontSize: 11, fontWeight: "600" },
   botaoCancelar: {
     marginTop: Espacamento.sm,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: Cores.erro,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  textoCancelar: { color: Cores.erro, fontWeight: '600', fontSize: 14 },
+  textoCancelar: { color: Cores.erro, fontWeight: "600", fontSize: 14 },
 });
 
 const estilos = StyleSheet.create({
+  containerFiltros: {
+    flexDirection: "row",
+    paddingHorizontal: Espacamento.md,
+    paddingTop: Espacamento.md,
+    gap: 8,
+  },
+
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: Cores.fundoInput,
+    borderWidth: 1,
+    borderColor: Cores.borda,
+  },
+
+  chipAtivo: {
+    backgroundColor: Cores.primaria,
+  },
+
+  textoChip: {
+    color: Cores.textoSecundario,
+    fontSize: 13,
+  },
+
+  textoChipAtivo: {
+    color: "#FFF",
+    fontWeight: "600",
+  },
   container: { flex: 1, backgroundColor: Cores.fundo },
   cabecalho: {
     paddingHorizontal: Espacamento.md,
@@ -265,10 +428,19 @@ const estilos = StyleSheet.create({
     borderBottomColor: Cores.borda,
   },
   tituloCabecalho: { ...Tipografia.titulo2 },
-  centralizado: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  centralizado: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
   iconeVazio: { fontSize: 48 },
-  textoVazio: { ...Tipografia.corpo, color: Cores.textoSecundario, textAlign: 'center' },
-  textoSub: { ...Tipografia.corpoPequeno, textAlign: 'center' },
+  textoVazio: {
+    ...Tipografia.corpo,
+    color: Cores.textoSecundario,
+    textAlign: "center",
+  },
+  textoSub: { ...Tipografia.corpoPequeno, textAlign: "center" },
   botaoLogin: {
     backgroundColor: Cores.primaria,
     paddingVertical: 12,
@@ -276,7 +448,7 @@ const estilos = StyleSheet.create({
     borderRadius: 10,
     marginTop: 8,
   },
-  textoBotaoLogin: { color: Cores.texto, fontWeight: '700', fontSize: 15 },
+  textoBotaoLogin: { color: Cores.texto, fontWeight: "700", fontSize: 15 },
   lista: { padding: Espacamento.md, paddingBottom: Espacamento.xxl },
   labelSecao: { ...Tipografia.titulo3, marginBottom: Espacamento.sm },
 });
