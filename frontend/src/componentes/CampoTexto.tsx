@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, TextInputProps, ViewStyle } from 'react-native';
-import { Cores, Espacamento } from '../styles/tema';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  TextInputProps,
+  ViewStyle,
+} from "react-native";
+import { Cores, Espacamento } from "../styles/tema";
+import { Ionicons } from "@expo/vector-icons";
 
 interface CampoTextoProps extends TextInputProps {
   label: string;
@@ -9,7 +18,14 @@ interface CampoTextoProps extends TextInputProps {
   containerStyle?: ViewStyle;
 }
 
-export function CampoTexto({ label, erro, senhaToggle, secureTextEntry, containerStyle, ...props }: CampoTextoProps) {
+export function CampoTexto({
+  label,
+  erro,
+  senhaToggle,
+  secureTextEntry,
+  containerStyle,
+  ...props
+}: CampoTextoProps) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   return (
@@ -23,8 +39,15 @@ export function CampoTexto({ label, erro, senhaToggle, secureTextEntry, containe
           {...props}
         />
         {senhaToggle && (
-          <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)} style={estilos.botaoSenha}>
-            <Text style={estilos.iconeSenha}>{mostrarSenha ? '🙈' : '👁️'}</Text>
+          <TouchableOpacity
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+            style={estilos.botaoSenha}
+          >
+            <Ionicons
+              name={mostrarSenha ? "eye-off" : "eye"}
+              size={18}
+              color="#ffffff"
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -40,12 +63,12 @@ const estilos = StyleSheet.create({
   label: {
     color: Cores.textoSecundario,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 6,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Cores.fundoInput,
     borderWidth: 1,
     borderColor: Cores.borda,
