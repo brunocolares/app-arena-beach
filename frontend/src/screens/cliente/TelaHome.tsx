@@ -1,38 +1,45 @@
-import React from 'react';
+import React from "react";
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, ScrollView
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { api } from '../../shared/api';
-import { Esporte } from '../../shared/tipos';
-import { CardEsporte } from '../../componentes/CardEsporte';
-import { Cores, Espacamento, Tipografia } from '../../styles/tema';
-import { HomeStackParams } from '../../routes/ClienteTabs';
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { api } from "../../shared/api";
+import { Esporte } from "../../shared/tipos";
+import { CardEsporte } from "../../componentes/CardEsporte";
+import { Cores, Espacamento, Tipografia } from "../../styles/tema";
+import { HomeStackParams } from "../../routes/ClienteTabs";
+import { useAuth } from "../../contexto/AuthContexto";
 
-type NavProp = NativeStackNavigationProp<HomeStackParams, 'Home'>;
+type NavProp = NativeStackNavigationProp<HomeStackParams, "Home">;
 
 async function buscarEsportes(): Promise<Esporte[]> {
-  const resposta = await api.get('/esportes');
+  const resposta = await api.get("/esportes");
   return resposta.data;
 }
 
 export function TelaHome() {
   const navegacao = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
+  const { autenticado, usuario } = useAuth();
 
   const {
     data: esportes,
     isLoading,
     isError,
     refetch,
-  } = useQuery({ queryKey: ['esportes'], queryFn: buscarEsportes });
+  } = useQuery({ queryKey: ["esportes"], queryFn: buscarEsportes });
 
   function aoSelecionarEsporte(esporte: Esporte) {
-    navegacao.navigate('Quadras', { esporte });
+    navegacao.navigate("Quadras", { esporte });
   }
 
   if (isLoading) {
@@ -70,8 +77,16 @@ export function TelaHome() {
 
       {/* Banner de destaque */}
       <View style={estilos.banner}>
-        <Text style={estilos.bannerTexto}>🏆 Reserve sua quadra em segundos</Text>
-        <Text style={estilos.bannerSub}>Confira disponibilidade sem precisar fazer login</Text>
+        <Text style={estilos.bannerTexto}>
+          {autenticado
+            ? `Olá, ${usuario?.nome ? usuario.nome.split(" ")[0] : ""}! 👋`
+            : "🏆 Reserve sua quadra em segundos"}
+        </Text>
+        {!autenticado && (
+          <Text style={estilos.bannerSub}>
+            Confira disponibilidade sem precisar fazer login
+          </Text>
+        )}
       </View>
 
       {/* Grid de esportes */}
@@ -86,11 +101,16 @@ export function TelaHome() {
           <Text style={estilos.secaoTitulo}>Modalidades disponíveis</Text>
         }
         renderItem={({ item }) => (
-          <CardEsporte esporte={item} onPress={() => aoSelecionarEsporte(item)} />
+          <CardEsporte
+            esporte={item}
+            onPress={() => aoSelecionarEsporte(item)}
+          />
         )}
         ListEmptyComponent={
           <View style={estilos.centralizado}>
-            <Text style={estilos.textoVazio}>Nenhuma modalidade cadastrada</Text>
+            <Text style={estilos.textoVazio}>
+              Nenhuma modalidade cadastrada
+            </Text>
           </View>
         }
       />
@@ -104,15 +124,15 @@ const estilos = StyleSheet.create({
     backgroundColor: Cores.fundo,
   },
   centralizado: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     flex: 1,
     gap: 12,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Espacamento.md,
     paddingVertical: Espacamento.md,
     backgroundColor: Cores.fundoCard,
@@ -121,7 +141,7 @@ const estilos = StyleSheet.create({
   },
   logoTexto: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Cores.primaria,
     letterSpacing: 0.5,
   },
@@ -130,7 +150,7 @@ const estilos = StyleSheet.create({
     marginTop: 2,
   },
   badgeOnline: {
-    backgroundColor: 'rgba(76, 175, 80, 0.15)',
+    backgroundColor: "rgba(76, 175, 80, 0.15)",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -140,7 +160,7 @@ const estilos = StyleSheet.create({
   textoBadgeOnline: {
     color: Cores.sucesso,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   banner: {
     backgroundColor: Cores.primariaDark,
@@ -154,10 +174,10 @@ const estilos = StyleSheet.create({
   bannerTexto: {
     color: Cores.texto,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   bannerSub: {
-    color: 'rgba(255,255,255,0.75)',
+    color: "rgba(255,255,255,0.75)",
     fontSize: 12,
     marginTop: 4,
   },
@@ -166,7 +186,7 @@ const estilos = StyleSheet.create({
     paddingBottom: Espacamento.xxl,
   },
   coluna: {
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   secaoTitulo: {
     ...Tipografia.titulo3,
@@ -189,7 +209,7 @@ const estilos = StyleSheet.create({
   },
   textoBotaoTentar: {
     color: Cores.texto,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   textoVazio: {
     ...Tipografia.corpoPequeno,
