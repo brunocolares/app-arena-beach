@@ -202,7 +202,12 @@ export function TelaMeusJogos() {
         </View>
       ) : (
         <FlatList
-          data={[...emAndamento, ...futuras, ...passadas, ...canceladas]}
+          data={[
+            ...emAndamento,
+            ...futuras,
+            ...passadasFiltradas,
+            ...canceladas,
+          ]}
           keyExtractor={(item) => item.id}
           contentContainerStyle={estilos.lista}
           showsVerticalScrollIndicator={false}
