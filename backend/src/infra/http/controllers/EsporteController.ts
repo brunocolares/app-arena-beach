@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../../database/dataSource";
 import { Esporte } from "../../../domain/entities/Esporte";
 import { Quadra } from "../../../domain/entities/Quadra";
-import { ErroNaoEncontrado } from "../../../shared/erros/ErrosAplicacao";
+import {
+  ErroNaoEncontrado,
+  ErroConflito,
+} from "../../../shared/erros/ErrosAplicacao";
 import { Like } from "typeorm";
 
 export class EsporteController {
@@ -109,6 +112,22 @@ export class EsporteController {
       const repoEsporte = AppDataSource.getRepository(Esporte);
       const esporte = await repoEsporte.findOne({ where: { id } });
       if (!esporte) throw new ErroNaoEncontrado("Esporte");
+
+      const repoQuadra = AppDataSource.getRepository(Quadra);
+      const quadrasAtivas = await repoQuadra
+        .createQueryBuilder("quadra")
+        .where("quadra.ativa = :ativa", { ativa: true })
+        .andWhere(
+          "(quadra.esporte_id = :esporteId OR quadra.esportes_ids_json LIKE :esporteLike)",
+          { esporteId: id, esporteLike: `%\"${id}\"%` },
+        )
+        .getCount();
+
+      if (quadrasAtivas > 0) {
+        throw new ErroConflito(
+          "Não é possível excluir o esporte enquanto houver quadras ativas vinculadas a ele.",
+        );
+      }
 
       await repoEsporte.remove(esporte);
       return res.status(204).send();
