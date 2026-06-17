@@ -97,7 +97,7 @@ export function TelaPerfilAdmin() {
     onSuccess: (dadosAtualizados) => {
       queryClient.invalidateQueries({ queryKey: ["perfil-admin"] });
       queryClient.invalidateQueries({ queryKey: ["sessao"] });
-      Alert.alert("✅ Sucesso", "Seus dados foram atualizados!");
+      Alert.alert("Sucesso", "Seus dados foram atualizados!");
     },
     onError: (e: Error) => Alert.alert("Erro", e.message),
   });
@@ -109,7 +109,7 @@ export function TelaPerfilAdmin() {
       setSenhaAtual("");
       setNovaSenha("");
       setConfirmarSenha("");
-      Alert.alert("✅ Sucesso", "Senha alterada com sucesso!");
+      Alert.alert("Sucesso", "Senha alterada com sucesso!");
     },
     onError: (e: Error) => Alert.alert("Erro", e.message),
   });
@@ -276,7 +276,7 @@ export function TelaPerfilAdmin() {
           <View style={estilos.secao}>
             <View style={estilos.dicaSenha}>
               <Text style={estilos.textoDica}>
-                🔐 A senha deve ter pelo menos 6 caracteres.
+                A senha deve ter pelo menos 6 caracteres.
               </Text>
             </View>
 
