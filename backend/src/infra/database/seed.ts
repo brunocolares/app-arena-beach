@@ -7,7 +7,7 @@ import { ConfiguracaoArena } from "../../domain/entities/ConfiguracaoArena";
 
 async function popularBancoDeDados() {
   await AppDataSource.initialize();
-  console.log("🗄️  Banco conectado. Populando dados iniciais...");
+  console.log("   Banco conectado. Populando dados iniciais...");
 
   const repoEsporte = AppDataSource.getRepository(Esporte);
   const repoQuadra = AppDataSource.getRepository(Quadra);
@@ -25,7 +25,7 @@ async function popularBancoDeDados() {
       hora_fechamento: "22:00",
     });
     await repoConfig.save(config);
-    console.log("✅ Configuração da arena criada");
+    console.log("Configuração da arena criada");
   }
 
   // Admin padrão
@@ -41,7 +41,7 @@ async function popularBancoDeDados() {
       is_admin: true,
     });
     await repoUsuario.save(admin);
-    console.log("✅ Admin criado: admin@arena.com / admin123");
+    console.log("Admin criado: admin@arena.com / admin123");
   }
 
   // Usuário de teste
@@ -57,7 +57,7 @@ async function popularBancoDeDados() {
       is_admin: false,
     });
     await repoUsuario.save(user);
-    console.log("✅ Usuário de teste criado: joao@email.com / senha123");
+    console.log("Usuário de teste criado: joao@email.com / senha123");
   }
 
   // Esportes
@@ -84,11 +84,21 @@ async function popularBancoDeDados() {
       esportesSalvos.push(await repoEsporte.save(esporte));
     }
     console.log(
-      `✅ ${esportesExistentes === 0 ? esportes.length : 0} esportes criados`,
+      `${esportesExistentes === 0 ? esportes.length : 0} esportes criados`,
     );
 
     // Quadras
-    const quadrasData = [
+    type QuadraSeed = {
+      nome_quadra: string;
+      preco_hora: number;
+      esporte_id: string;
+      fotos: any[];
+      diferenciais: string[];
+      ativa: boolean;
+      esportes_ids?: string[];
+    };
+
+    const quadrasData: QuadraSeed[] = [
       {
         nome_quadra: "Beach Court A",
         preco_hora: 80,
@@ -135,17 +145,17 @@ async function popularBancoDeDados() {
       });
       await repoQuadra.save(quadra);
     }
-    console.log(`✅ ${quadrasData.length} quadras criadas`);
+    console.log(`${quadrasData.length} quadras criadas`);
   }
 
-  console.log("\n🎉 Seed concluído com sucesso!");
-  console.log("📌 Credenciais:");
+  console.log("\n Seed concluído com sucesso!");
+  console.log("   Credenciais:");
   console.log("   Admin: admin@arena.com / admin123");
   console.log("   Usuário: joao@email.com / senha123");
   await AppDataSource.destroy();
 }
 
 popularBancoDeDados().catch((err) => {
-  console.error("❌ Erro no seed:", err);
+  console.error("Erro no seed:", err);
   process.exit(1);
 });
