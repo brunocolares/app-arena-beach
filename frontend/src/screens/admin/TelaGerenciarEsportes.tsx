@@ -9,6 +9,8 @@ import { useNavigation } from '@react-navigation/native';
 import { api } from '../../shared/api';
 import { Esporte } from '../../shared/tipos';
 import { Cores, Espacamento, Tipografia } from '../../styles/tema';
+import { AntDesign } from '@expo/vector-icons';
+
 
 async function buscarEsportes(): Promise<Esporte[]> {
   const r = await api.get('/esportes');
@@ -86,13 +88,13 @@ export function TelaGerenciarEsportes() {
                   style={estilos.botaoEditar}
                   onPress={() => navegacao.navigate('FormularioEsporte', { esporte: item })}
                 >
-                  <Text>✏️</Text>
+                  <AntDesign name="edit" size={24} color={Cores.texto} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={estilos.botaoExcluir}
                   onPress={() => aoExcluir(item)}
                 >
-                  <Text>🗑️</Text>
+                  <AntDesign name="delete" size={24} color={Cores.erro} />
                 </TouchableOpacity>
               </View>
             </View>

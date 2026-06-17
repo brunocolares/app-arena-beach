@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api } from '../../shared/api';
 import { Quadra } from '../../shared/tipos';
 import { Cores, Espacamento, Tipografia } from '../../styles/tema';
+import { AntDesign } from '@expo/vector-icons';
 
 async function buscarTodasQuadras(): Promise<Quadra[]> {
   const resposta = await api.get('/quadras');
@@ -70,7 +71,7 @@ export function TelaGerenciarQuadras() {
                     style={estilos.botaoEditar}
                     onPress={() => navegacao.navigate('FormularioQuadra', { quadra: item })}
                   >
-                    <Text style={estilos.textoBotaoEditar}>✏️</Text>
+                    <AntDesign name="edit" size={24} color={Cores.texto} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[estilos.botaoToggle, item.ativa ? estilos.botaoDesativar : estilos.botaoAtivar]}
