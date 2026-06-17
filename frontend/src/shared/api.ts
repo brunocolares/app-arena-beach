@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CHAVE_TOKEN = '@arena:token';
 
-// Altere para o IP da sua máquina ao testar no dispositivo físico
+// aq eu altero para o IP da  máquina ao testar no dispositivo físico
 export const BASE_URL = 'http://10.0.2.2:3333'; // Android Emulator -> localhost
 
 export const api = axios.create({
