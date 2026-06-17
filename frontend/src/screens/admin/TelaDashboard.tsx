@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, RefreshControl, Dimensions,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '../../contexto/AuthContexto';
-import { api } from '../../shared/api';
-import { Cores, Espacamento, Tipografia } from '../../styles/tema';
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Dimensions,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../contexto/AuthContexto";
+import { api } from "../../shared/api";
+import { Cores, Espacamento, Tipografia } from "../../styles/tema";
+import AntDesign from "@expo/vector-icons/build/AntDesign";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 // ─── Tipos ────────────────────────────────────────────────
 interface DadosDashboard {
@@ -30,46 +37,63 @@ interface DadosDashboard {
   ultimos7Dias: { data: string; total: number; faturamento: number }[];
 }
 
-type FiltroTempo = 'semana' | 'mes' | 'hoje';
+type FiltroTempo = "semana" | "mes" | "hoje";
 
 function obterPeriodo(filtro: FiltroTempo): { inicio: string; fim: string } {
   const hoje = new Date();
-  const fmt = (d: Date) => d.toISOString().split('T')[0];
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
 
-  if (filtro === 'hoje') {
+  if (filtro === "hoje") {
     const s = fmt(hoje);
     return { inicio: s, fim: s };
   }
-  if (filtro === 'semana') {
+  if (filtro === "semana") {
     const inicio = new Date(hoje);
     inicio.setDate(hoje.getDate() - 6);
     return { inicio: fmt(inicio), fim: fmt(hoje) };
   }
   // mes
   const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
   return { inicio: `${ano}-${mes}-01`, fim: `${ano}-${mes}-31` };
 }
 
-async function buscarDashboard(inicio: string, fim: string): Promise<DadosDashboard> {
-  const r = await api.get(`/admin/dashboard?data_inicio=${inicio}&data_fim=${fim}`);
+async function buscarDashboard(
+  inicio: string,
+  fim: string,
+): Promise<DadosDashboard> {
+  const r = await api.get(
+    `/admin/dashboard?data_inicio=${inicio}&data_fim=${fim}`,
+  );
   return r.data;
 }
 
 function formatarReal(valor: number): string {
-  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 // ─── Componentes Internos ─────────────────────────────────
 
 function CartaoMetrica({
-  icone, titulo, valor, subtitulo, corDestaque,
+  icone,
+  titulo,
+  valor,
+  subtitulo,
+  corDestaque,
 }: {
-  icone: string; titulo: string; valor: string;
-  subtitulo?: string; corDestaque?: string;
+  icone: string;
+  titulo: string;
+  valor: string;
+  subtitulo?: string;
+  corDestaque?: string;
 }) {
   return (
-    <View style={[estilos.cartao, { borderLeftColor: corDestaque || Cores.primaria, borderLeftWidth: 3 }]}>
+    <View
+      style={[
+        estilos.cartao,
+        { borderLeftColor: corDestaque || Cores.primaria, borderLeftWidth: 3 },
+      ]}
+    >
       <Text style={estilos.cartaoIcone}>{icone}</Text>
       <Text style={estilos.cartaoValor}>{valor}</Text>
       <Text style={estilos.cartaoTitulo}>{titulo}</Text>
@@ -79,9 +103,13 @@ function CartaoMetrica({
 }
 
 function SecaoRanking({
-  titulo, icone, dados, formatarValor,
+  titulo,
+  icone,
+  dados,
+  formatarValor,
 }: {
-  titulo: string; icone: string;
+  titulo: string;
+  icone: string;
   dados: { label: string; valor: number; sub?: string }[];
   formatarValor?: (v: number) => string;
 }) {
@@ -99,22 +127,39 @@ function SecaoRanking({
           <View key={idx} style={estilos.itemRanking}>
             <View style={estilos.itemRankingInfo}>
               <View style={estilos.itemRankingTopo}>
-                <View style={[estilos.posicaoBadge,
-                  idx === 0 ? estilos.posicaoOuro :
-                  idx === 1 ? estilos.posicaoPrata : estilos.posicaoBronze]}>
+                <View
+                  style={[
+                    estilos.posicaoBadge,
+                    idx === 0
+                      ? estilos.posicaoOuro
+                      : idx === 1
+                        ? estilos.posicaoPrata
+                        : estilos.posicaoBronze,
+                  ]}
+                >
                   <Text style={estilos.posicaoTexto}>{idx + 1}º</Text>
                 </View>
-                <Text style={estilos.itemLabel} numberOfLines={1}>{item.label}</Text>
+                <Text style={estilos.itemLabel} numberOfLines={1}>
+                  {item.label}
+                </Text>
                 <Text style={estilos.itemValor}>
                   {formatarValor ? formatarValor(item.valor) : `${item.valor}x`}
                 </Text>
               </View>
-              {item.sub ? <Text style={estilos.itemSub}>{item.sub}</Text> : null}
+              {item.sub ? (
+                <Text style={estilos.itemSub}>{item.sub}</Text>
+              ) : null}
               {/* Barra de progresso */}
               <View style={estilos.barraFundo}>
-                <View style={[estilos.barraPreenchida,
-                  { width: `${(item.valor / maxValor) * 100}%`,
-                    backgroundColor: idx === 0 ? Cores.primaria : Cores.borda }]} />
+                <View
+                  style={[
+                    estilos.barraPreenchida,
+                    {
+                      width: `${(item.valor / maxValor) * 100}%`,
+                      backgroundColor: idx === 0 ? Cores.primaria : Cores.borda,
+                    },
+                  ]}
+                />
               </View>
             </View>
           </View>
@@ -124,8 +169,12 @@ function SecaoRanking({
   );
 }
 
-function GraficoBarras({ dados }: { dados: { data: string; total: number; faturamento: number }[] }) {
-  const maxFat = Math.max(...dados.map(d => d.faturamento), 1);
+function GraficoBarras({
+  dados,
+}: {
+  dados: { data: string; total: number; faturamento: number }[];
+}) {
+  const maxFat = Math.max(...dados.map((d) => d.faturamento), 1);
   const barWidth = (width - Espacamento.md * 4) / dados.length - 6;
 
   return (
@@ -136,22 +185,36 @@ function GraficoBarras({ dados }: { dados: { data: string; total: number; fatura
       </View>
       <View style={estilos.graficoContainer}>
         {dados.map((d, i) => {
-          const altura = maxFat > 0 ? Math.max((d.faturamento / maxFat) * 90, d.faturamento > 0 ? 6 : 2) : 2;
+          const altura =
+            maxFat > 0
+              ? Math.max(
+                  (d.faturamento / maxFat) * 90,
+                  d.faturamento > 0 ? 6 : 2,
+                )
+              : 2;
           const ehHoje = i === dados.length - 1;
           return (
             <View key={i} style={[estilos.barra, { width: barWidth }]}>
               {d.faturamento > 0 && (
                 <Text style={estilos.barraValorTopo} numberOfLines={1}>
-                  {formatarReal(d.faturamento).replace('R$\u00a0', '')}
+                  {formatarReal(d.faturamento).replace("R$\u00a0", "")}
                 </Text>
               )}
               <View
                 style={[
                   estilos.barraColuna,
-                  { height: altura, backgroundColor: ehHoje ? Cores.primaria : '#3a3a5c' },
+                  {
+                    height: altura,
+                    backgroundColor: ehHoje ? Cores.primaria : "#3a3a5c",
+                  },
                 ]}
               />
-              <Text style={[estilos.barraLabel, ehHoje && { color: Cores.primaria }]}>
+              <Text
+                style={[
+                  estilos.barraLabel,
+                  ehHoje && { color: Cores.primaria },
+                ]}
+              >
                 {d.data}
               </Text>
               {d.total > 0 && (
@@ -170,17 +233,21 @@ function GraficoBarras({ dados }: { dados: { data: string; total: number; fatura
 export function TelaDashboard() {
   const insets = useSafeAreaInsets();
   const { usuario } = useAuth();
-  const [filtro, setFiltro] = useState<FiltroTempo>('mes');
+  const [filtro, setFiltro] = useState<FiltroTempo>("mes");
 
   const periodo = obterPeriodo(filtro);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['dashboard', filtro],
+    queryKey: ["dashboard", filtro],
     queryFn: () => buscarDashboard(periodo.inicio, periodo.fim),
     staleTime: 1000 * 60 * 2,
   });
 
-  const nomeFiltro = { hoje: 'Hoje', semana: 'Últimos 7 dias', mes: 'Este mês' };
+  const nomeFiltro = {
+    hoje: "Hoje",
+    semana: "Últimos 7 dias",
+    mes: "Este mês",
+  };
 
   return (
     <View style={[estilos.container, { paddingTop: insets.top }]}>
@@ -189,23 +256,39 @@ export function TelaDashboard() {
         <View>
           <Text style={estilos.tituloCabecalho}>Dashboard</Text>
           <Text style={estilos.subtituloCabecalho}>
-            Olá, {usuario?.nome?.split(' ')[0]} 👋
+            Olá, {usuario?.nome?.split(" ")[0]} 👋
           </Text>
         </View>
-        <TouchableOpacity onPress={() => refetch()} style={estilos.botaoAtualizar}>
-          <Text style={estilos.iconeAtualizar}>🔄</Text>
+        <TouchableOpacity
+          onPress={() => refetch()}
+          style={estilos.botaoAtualizar}
+        >
+          <AntDesign
+            name="reload1"
+            size={18}
+            color={Cores.primaria}
+            style={estilos.iconeAtualizar}
+          />
         </TouchableOpacity>
       </View>
 
       {/* Filtros de tempo */}
       <View style={estilos.filtros}>
-        {(['hoje', 'semana', 'mes'] as FiltroTempo[]).map(f => (
+        {(["hoje", "semana", "mes"] as FiltroTempo[]).map((f) => (
           <TouchableOpacity
             key={f}
-            style={[estilos.botaoFiltro, filtro === f && estilos.botaoFiltroAtivo]}
+            style={[
+              estilos.botaoFiltro,
+              filtro === f && estilos.botaoFiltroAtivo,
+            ]}
             onPress={() => setFiltro(f)}
           >
-            <Text style={[estilos.textoFiltro, filtro === f && estilos.textoFiltroAtivo]}>
+            <Text
+              style={[
+                estilos.textoFiltro,
+                filtro === f && estilos.textoFiltroAtivo,
+              ]}
+            >
               {nomeFiltro[f]}
             </Text>
           </TouchableOpacity>
@@ -222,7 +305,11 @@ export function TelaDashboard() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={estilos.scroll}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Cores.primaria} />
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={Cores.primaria}
+            />
           }
         >
           {/* Cartões principais */}
@@ -278,13 +365,16 @@ export function TelaDashboard() {
           <SecaoRanking
             titulo="Esportes mais reservados"
             icone="🏆"
-            dados={(data?.rankingEsportes || []).map(e => ({ label: e.nome, valor: e.total }))}
+            dados={(data?.rankingEsportes || []).map((e) => ({
+              label: e.nome,
+              valor: e.total,
+            }))}
           />
 
           <SecaoRanking
             titulo="Quadras mais alugadas"
             icone="🥇"
-            dados={(data?.rankingQuadras || []).map(q => ({
+            dados={(data?.rankingQuadras || []).map((q) => ({
               label: q.nome,
               valor: q.total,
               sub: formatarReal(q.faturamento),
@@ -294,13 +384,19 @@ export function TelaDashboard() {
           <SecaoRanking
             titulo="Horários mais procurados"
             icone="🕐"
-            dados={(data?.rankingHorarios || []).map(h => ({ label: h.horario, valor: h.total }))}
+            dados={(data?.rankingHorarios || []).map((h) => ({
+              label: h.horario,
+              valor: h.total,
+            }))}
           />
 
           <SecaoRanking
             titulo="Dias da semana mais movimentados"
             icone="📆"
-            dados={(data?.rankingDias || []).map(d => ({ label: d.dia, valor: d.total }))}
+            dados={(data?.rankingDias || []).map((d) => ({
+              label: d.dia,
+              valor: d.total,
+            }))}
           />
 
           <View style={{ height: 20 }} />
@@ -315,9 +411,9 @@ const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: Cores.fundo },
 
   cabecalho: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Espacamento.md,
     paddingVertical: Espacamento.md,
     backgroundColor: Cores.fundoCard,
@@ -327,15 +423,17 @@ const estilos = StyleSheet.create({
   tituloCabecalho: { ...Tipografia.titulo2 },
   subtituloCabecalho: { ...Tipografia.corpoPequeno, marginTop: 2 },
   botaoAtualizar: {
-    width: 40, height: 40,
+    width: 40,
+    height: 40,
     backgroundColor: Cores.fundoInput,
     borderRadius: 20,
-    justifyContent: 'center', alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   iconeAtualizar: { fontSize: 18 },
 
   filtros: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: Espacamento.md,
     paddingVertical: Espacamento.sm,
     backgroundColor: Cores.fundoCard,
@@ -355,17 +453,26 @@ const estilos = StyleSheet.create({
     backgroundColor: Cores.primaria,
     borderColor: Cores.primaria,
   },
-  textoFiltro: { color: Cores.textoSecundario, fontSize: 13, fontWeight: '500' },
-  textoFiltroAtivo: { color: Cores.texto, fontWeight: '700' },
+  textoFiltro: {
+    color: Cores.textoSecundario,
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  textoFiltroAtivo: { color: Cores.texto, fontWeight: "700" },
 
-  centralizado: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  centralizado: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
   textoCarregando: { ...Tipografia.corpoPequeno },
   scroll: { padding: Espacamento.md },
 
   // Grid de cartões (2 colunas)
   gridCartoes: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Espacamento.sm,
     marginBottom: Espacamento.md,
   },
@@ -379,42 +486,51 @@ const estilos = StyleSheet.create({
     gap: 4,
   },
   cartaoIcone: { fontSize: 22 },
-  cartaoValor: { color: Cores.texto, fontSize: 20, fontWeight: '800', marginTop: 2 },
-  cartaoTitulo: { color: Cores.textoSecundario, fontSize: 12, fontWeight: '600' },
+  cartaoValor: {
+    color: Cores.texto,
+    fontSize: 20,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  cartaoTitulo: {
+    color: Cores.textoSecundario,
+    fontSize: 12,
+    fontWeight: "600",
+  },
   cartaoSub: { color: Cores.textoSecundario, fontSize: 11 },
 
   // Gráfico de barras
   graficoContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
     height: 140,
     paddingTop: Espacamento.lg,
   },
   barra: {
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    alignItems: "center",
+    justifyContent: "flex-end",
     gap: 3,
   },
   barraValorTopo: {
     color: Cores.textoSecundario,
     fontSize: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   barraColuna: {
-    width: '80%',
+    width: "80%",
     borderRadius: 4,
     minHeight: 2,
   },
   barraLabel: {
     color: Cores.textoSecundario,
     fontSize: 9,
-    textAlign: 'center',
+    textAlign: "center",
   },
   barraCount: {
     color: Cores.primaria,
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 
   // Seção de ranking
@@ -427,33 +543,40 @@ const estilos = StyleSheet.create({
     borderColor: Cores.borda,
   },
   secaoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: Espacamento.md,
   },
   secaoIcone: { fontSize: 20 },
   secaoTitulo: { ...Tipografia.titulo3 },
 
-  textoVazio: { ...Tipografia.corpoPequeno, textAlign: 'center', paddingVertical: 8 },
+  textoVazio: {
+    ...Tipografia.corpoPequeno,
+    textAlign: "center",
+    paddingVertical: 8,
+  },
 
   itemRanking: { marginBottom: 10 },
   itemRankingInfo: { gap: 4 },
   itemRankingTopo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   posicaoBadge: {
-    width: 24, height: 24, borderRadius: 12,
-    justifyContent: 'center', alignItems: 'center',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  posicaoOuro: { backgroundColor: '#FFD700' },
-  posicaoPrata: { backgroundColor: '#C0C0C0' },
-  posicaoBronze: { backgroundColor: '#CD7F32' },
-  posicaoTexto: { fontSize: 10, fontWeight: '800', color: '#1a1a1a' },
-  itemLabel: { flex: 1, color: Cores.texto, fontSize: 14, fontWeight: '600' },
-  itemValor: { color: Cores.primaria, fontSize: 13, fontWeight: '700' },
+  posicaoOuro: { backgroundColor: "#FFD700" },
+  posicaoPrata: { backgroundColor: "#C0C0C0" },
+  posicaoBronze: { backgroundColor: "#CD7F32" },
+  posicaoTexto: { fontSize: 10, fontWeight: "800", color: "#1a1a1a" },
+  itemLabel: { flex: 1, color: Cores.texto, fontSize: 14, fontWeight: "600" },
+  itemValor: { color: Cores.primaria, fontSize: 13, fontWeight: "700" },
   itemSub: { color: Cores.textoSecundario, fontSize: 12, marginLeft: 32 },
   barraFundo: {
     height: 4,
@@ -461,7 +584,7 @@ const estilos = StyleSheet.create({
     borderRadius: 2,
     marginLeft: 32,
     marginTop: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-  barraPreenchida: { height: '100%', borderRadius: 2 },
+  barraPreenchida: { height: "100%", borderRadius: 2 },
 });
