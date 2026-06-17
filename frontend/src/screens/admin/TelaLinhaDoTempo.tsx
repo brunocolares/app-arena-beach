@@ -156,7 +156,7 @@ export function TelaLinhaDoTempo() {
     Alert.alert("Detalhes do agendamento", mensagem, [
       { text: "Fechar", style: "cancel" },
       {
-        text: "Cancelar",
+        text: "Cancelar Agendamento",
         style: "destructive",
         onPress: () => mutacaoCancelarReserva.mutate(reserva.id),
       },
