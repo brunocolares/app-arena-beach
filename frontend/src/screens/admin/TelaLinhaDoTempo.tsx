@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../../shared/api';
-import { Reserva, Quadra } from '../../shared/tipos';
-import { Cores, Espacamento, Tipografia } from '../../styles/tema';
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "../../shared/api";
+import { Reserva, Quadra } from "../../shared/tipos";
+import { Cores, Espacamento, Tipografia } from "../../styles/tema";
 
 interface SlotAgenda {
   horario: string;
@@ -18,31 +23,59 @@ interface SlotAgenda {
 function gerarProximosDias(qtd: number) {
   const dias = [];
   const hoje = new Date();
-  const nomes = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const nomes = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
   for (let i = 0; i < qtd; i++) {
     const d = new Date(hoje);
     d.setDate(hoje.getDate() + i);
-    const dia = String(d.getDate()).padStart(2, '0');
-    const mes = String(d.getMonth() + 1).padStart(2, '0');
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
     const ano = d.getFullYear();
     dias.push({
       data: `${ano}-${mes}-${dia}`,
-      label: i === 0 ? 'Hoje' : nomes[d.getDay()],
+      label: i === 0 ? "Hoje" : nomes[d.getDay()],
       diaNum: dia,
     });
   }
   return dias;
 }
 
-const HORARIOS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00'];
+const HORARIOS = [
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+  "21:00",
+  "22:00",
+];
 
-async function buscarAgendaDiaria(data: string): Promise<{ quadras: Quadra[]; reservas: Reserva[] }> {
+async function buscarAgendaDiaria(
+  data: string,
+): Promise<{ quadras: Quadra[]; reservas: Reserva[] }> {
   const resposta = await api.get(`/admin/agenda?data=${data}`);
   return resposta.data;
 }
 
-async function criarBloqueio(dados: { quadra_id: string; data: string; hora_inicio: string; hora_fim: string }): Promise<void> {
-  await api.post('/reservas/bloqueio', dados);
+async function criarBloqueio(dados: {
+  quadra_id: string;
+  data: string;
+  hora_inicio: string;
+  hora_fim: string;
+}): Promise<void> {
+  await api.post("/reservas/bloqueio", dados);
+}
+
+async function cancelarReserva(id: string): Promise<void> {
+  await api.delete(`/reservas/${id}`);
 }
 
 export function TelaLinhaDoTempo() {
@@ -52,51 +85,93 @@ export function TelaLinhaDoTempo() {
   const [diaSelecionado, setDiaSelecionado] = useState(dias[0]);
 
   const { data: agenda, isLoading } = useQuery({
-    queryKey: ['agenda-admin', diaSelecionado.data],
+    queryKey: ["agenda-admin", diaSelecionado.data],
     queryFn: () => buscarAgendaDiaria(diaSelecionado.data),
   });
 
   const mutacaoBloqueio = useMutation({
     mutationFn: criarBloqueio,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agenda-admin'] });
-      Alert.alert('Sucesso', 'Horário bloqueado com sucesso.');
+      queryClient.invalidateQueries({
+        queryKey: ["agenda-admin", diaSelecionado.data],
+      });
+      Alert.alert("Sucesso", "Horário bloqueado com sucesso.");
     },
-    onError: (e: Error) => Alert.alert('Erro', e.message),
+    onError: (e: Error) => Alert.alert("Erro", e.message),
+  });
+
+  const mutacaoCancelarReserva = useMutation({
+    mutationFn: cancelarReserva,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["agenda-admin", diaSelecionado.data],
+      });
+      Alert.alert("Sucesso", "Reserva cancelada com sucesso.");
+    },
+    onError: (e: Error) => Alert.alert("Erro", e.message),
   });
 
   function aoBloqueioPress(quadraId: string, horario: string) {
-    Alert.alert(
-      'Bloquear horário',
-      `Bloquear ${horario} para manutenção?`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Bloquear',
-          style: 'destructive',
-          onPress: () => {
-            const [h] = horario.split(':').map(Number);
-            const horaFim = `${String(h + 1).padStart(2, '0')}:00`;
-            mutacaoBloqueio.mutate({
-              quadra_id: quadraId,
-              data: diaSelecionado.data,
-              hora_inicio: horario,
-              hora_fim: horaFim,
-            });
-          },
+    Alert.alert("Bloquear horário", `Bloquear ${horario} para manutenção?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Bloquear",
+        style: "destructive",
+        onPress: () => {
+          const [h] = horario.split(":").map(Number);
+          const horaFim = `${String(h + 1).padStart(2, "0")}:00`;
+          mutacaoBloqueio.mutate({
+            quadra_id: quadraId,
+            data: diaSelecionado.data,
+            hora_inicio: horario,
+            hora_fim: horaFim,
+          });
         },
-      ]
+      },
+    ]);
+  }
+
+  function obterReservaDoSlot(quadraId: string, horario: string) {
+    return agenda?.reservas.find(
+      (r) => r.quadra_id === quadraId && r.hora_inicio === horario,
     );
   }
 
-  function statusSlot(quadraId: string, horario: string): 'livre' | 'reservado' | 'bloqueado' {
-    if (!agenda) return 'livre';
-    const reserva = agenda.reservas.find(
-      r => r.quadra_id === quadraId && r.hora_inicio === horario
-    );
-    if (!reserva) return 'livre';
-    if (reserva.tipo === 'bloqueio') return 'bloqueado';
-    return 'reservado';
+  function aoDetalhesReserva(quadraId: string, horario: string) {
+    const reserva = obterReservaDoSlot(quadraId, horario);
+    if (!reserva) return;
+
+    if (reserva.tipo === "bloqueio") {
+      return Alert.alert(
+        "Horário bloqueado",
+        `Esta quadra está bloqueada neste horário.`,
+      );
+    }
+
+    const nomeUsuario = reserva.usuario?.nome || "Cliente não informado";
+    const valor = reserva.quadra?.preco_hora?.toFixed(2) ?? "0.00";
+    const horarioTexto = `${reserva.hora_inicio} - ${reserva.hora_fim}`;
+    const mensagem = `Usuário: ${nomeUsuario}\nHorário: ${horarioTexto}\nValor: R$ ${valor}`;
+
+    Alert.alert("Detalhes do agendamento", mensagem, [
+      { text: "Fechar", style: "cancel" },
+      {
+        text: "Cancelar",
+        style: "destructive",
+        onPress: () => mutacaoCancelarReserva.mutate(reserva.id),
+      },
+    ]);
+  }
+
+  function statusSlot(
+    quadraId: string,
+    horario: string,
+  ): "livre" | "reservado" | "bloqueado" {
+    if (!agenda) return "livre";
+    const reserva = obterReservaDoSlot(quadraId, horario);
+    if (!reserva) return "livre";
+    if (reserva.tipo === "bloqueio") return "bloqueado";
+    return "reservado";
   }
 
   return (
@@ -106,7 +181,12 @@ export function TelaLinhaDoTempo() {
       </View>
 
       {/* Seletor de dias */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={estilos.scrollDias} contentContainerStyle={estilos.conteudoDias}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={estilos.scrollDias}
+        contentContainerStyle={estilos.conteudoDias}
+      >
         {dias.map((dia) => {
           const ativo = dia.data === diaSelecionado.data;
           return (
@@ -115,8 +195,12 @@ export function TelaLinhaDoTempo() {
               style={[estilos.cardDia, ativo && estilos.cardDiaAtivo]}
               onPress={() => setDiaSelecionado(dia)}
             >
-              <Text style={[estilos.labelDia, ativo && estilos.textoDiaAtivo]}>{dia.label}</Text>
-              <Text style={[estilos.numeroDia, ativo && estilos.textoDiaAtivo]}>{dia.diaNum}</Text>
+              <Text style={[estilos.labelDia, ativo && estilos.textoDiaAtivo]}>
+                {dia.label}
+              </Text>
+              <Text style={[estilos.numeroDia, ativo && estilos.textoDiaAtivo]}>
+                {dia.diaNum}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -140,35 +224,50 @@ export function TelaLinhaDoTempo() {
               {/* Cabeçalho: quadras */}
               <View style={estilos.linhaTabela}>
                 <View style={[estilos.celulaHora, estilos.celulaHeader]} />
-                {(agenda?.quadras || []).map(q => (
-                  <View key={q.id} style={[estilos.celulaQuadra, estilos.celulaHeader]}>
-                    <Text style={estilos.nomeQuadraHeader} numberOfLines={2}>{q.nome_quadra}</Text>
+                {(agenda?.quadras || []).map((q) => (
+                  <View
+                    key={q.id}
+                    style={[estilos.celulaQuadra, estilos.celulaHeader]}
+                  >
+                    <Text style={estilos.nomeQuadraHeader} numberOfLines={2}>
+                      {q.nome_quadra}
+                    </Text>
                   </View>
                 ))}
               </View>
 
               {/* Horários */}
-              {HORARIOS.map(horario => (
+              {HORARIOS.map((horario) => (
                 <View key={horario} style={estilos.linhaTabela}>
                   <View style={estilos.celulaHora}>
                     <Text style={estilos.textoHora}>{horario}</Text>
                   </View>
-                  {(agenda?.quadras || []).map(quadra => {
+                  {(agenda?.quadras || []).map((quadra) => {
                     const status = statusSlot(quadra.id, horario);
                     return (
                       <TouchableOpacity
                         key={quadra.id}
                         style={[
                           estilos.celulaSlot,
-                          status === 'reservado' && estilos.slotReservado,
-                          status === 'bloqueado' && estilos.slotBloqueado,
-                          status === 'livre' && estilos.slotLivre,
+                          status === "reservado" && estilos.slotReservado,
+                          status === "bloqueado" && estilos.slotBloqueado,
+                          status === "livre" && estilos.slotLivre,
                         ]}
-                        onPress={() => status === 'livre' && aoBloqueioPress(quadra.id, horario)}
-                        disabled={status !== 'livre'}
+                        onPress={() => {
+                          if (status === "livre") {
+                            aoBloqueioPress(quadra.id, horario);
+                          } else if (status === "reservado") {
+                            aoDetalhesReserva(quadra.id, horario);
+                          }
+                        }}
+                        disabled={status === "bloqueado"}
                       >
                         <Text style={estilos.textoSlot}>
-                          {status === 'reservado' ? '●' : status === 'bloqueado' ? '✕' : ''}
+                          {status === "reservado"
+                            ? "●"
+                            : status === "bloqueado"
+                              ? "✕"
+                              : ""}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -185,9 +284,13 @@ export function TelaLinhaDoTempo() {
 
 function ItemLegenda({ cor, label }: { cor: string; label: string }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-      <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: cor }} />
-      <Text style={{ color: Cores.textoSecundario, fontSize: 12 }}>{label}</Text>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View
+        style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: cor }}
+      />
+      <Text style={{ color: Cores.textoSecundario, fontSize: 12 }}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -203,23 +306,30 @@ const estilos = StyleSheet.create({
   },
   tituloCabecalho: { ...Tipografia.titulo2 },
   scrollDias: { maxHeight: 90, backgroundColor: Cores.fundoCard },
-  conteudoDias: { paddingHorizontal: Espacamento.md, paddingVertical: Espacamento.sm, gap: 8 },
+  conteudoDias: {
+    paddingHorizontal: Espacamento.md,
+    paddingVertical: Espacamento.sm,
+    gap: 8,
+  },
   cardDia: {
     width: 58,
     height: 66,
     backgroundColor: Cores.fundoInput,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: Cores.borda,
   },
-  cardDiaAtivo: { backgroundColor: Cores.primaria, borderColor: Cores.primaria },
+  cardDiaAtivo: {
+    backgroundColor: Cores.primaria,
+    borderColor: Cores.primaria,
+  },
   labelDia: { color: Cores.textoSecundario, fontSize: 11 },
-  numeroDia: { color: Cores.texto, fontSize: 20, fontWeight: '700' },
+  numeroDia: { color: Cores.texto, fontSize: 20, fontWeight: "700" },
   textoDiaAtivo: { color: Cores.texto },
   legenda: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: Espacamento.md,
     paddingHorizontal: Espacamento.md,
     paddingVertical: Espacamento.sm,
@@ -227,20 +337,20 @@ const estilos = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Cores.borda,
   },
-  centralizado: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centralizado: { flex: 1, justifyContent: "center", alignItems: "center" },
   tabela: { padding: Espacamento.sm },
-  linhaTabela: { flexDirection: 'row', marginBottom: 2 },
+  linhaTabela: { flexDirection: "row", marginBottom: 2 },
   celulaHora: {
     width: 60,
     height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   celulaQuadra: {
     width: 110,
     height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 4,
   },
   celulaHeader: {
@@ -248,19 +358,33 @@ const estilos = StyleSheet.create({
     borderRadius: 8,
     marginRight: 2,
   },
-  nomeQuadraHeader: { color: Cores.texto, fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  nomeQuadraHeader: {
+    color: Cores.texto,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+  },
   textoHora: { color: Cores.textoSecundario, fontSize: 12 },
   celulaSlot: {
     width: 110,
     height: 44,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 2,
     borderWidth: 1,
   },
-  slotLivre: { backgroundColor: 'rgba(76,175,80,0.1)', borderColor: Cores.sucesso },
-  slotReservado: { backgroundColor: 'rgba(108,99,255,0.25)', borderColor: Cores.primaria },
-  slotBloqueado: { backgroundColor: 'rgba(255,82,82,0.2)', borderColor: Cores.erro },
+  slotLivre: {
+    backgroundColor: "rgba(76,175,80,0.1)",
+    borderColor: Cores.sucesso,
+  },
+  slotReservado: {
+    backgroundColor: "rgba(108,99,255,0.25)",
+    borderColor: Cores.primaria,
+  },
+  slotBloqueado: {
+    backgroundColor: "rgba(255,82,82,0.2)",
+    borderColor: Cores.erro,
+  },
   textoSlot: { color: Cores.texto, fontSize: 14 },
 });
