@@ -11,6 +11,7 @@ export interface Esporte {
 export interface Quadra {
   id: string;
   esporte_id: string;
+  esportes_ids?: string[];
   nome_quadra: string;
   preco_hora: number;
   fotos: string[];
@@ -34,8 +35,8 @@ export interface Reserva {
   data_reserva: string;
   hora_inicio: string;
   hora_fim: string;
-  tipo: 'reserva' | 'bloqueio';
-  status?: 'ativa' | 'cancelada' | 'concluida';
+  tipo: "reserva" | "bloqueio";
+  status?: "ativa" | "cancelada" | "concluida";
   usuario?: Usuario;
   quadra?: Quadra;
 }
