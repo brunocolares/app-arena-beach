@@ -168,7 +168,11 @@ export class ReservaController {
         );
       }
 
-      // Cancelamento permitido a qualquer momento pelo cliente
+      if (dataPassada(reserva.data_reserva, reserva.hora_inicio)) {
+        throw new ErroValidacao(
+          "Não é possível cancelar reservas que já passaram.",
+        );
+      }
 
       reserva.status = "cancelada";
       await repoReserva.save(reserva);

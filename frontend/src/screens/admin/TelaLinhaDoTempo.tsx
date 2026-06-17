@@ -39,6 +39,18 @@ function gerarProximosDias(qtd: number) {
   return dias;
 }
 
+function parseDateLocal(dataReserva: string, hora: string): Date {
+  const [ano, mes, dia] = dataReserva.split("-").map(Number);
+  const [horaNum, minutoNum] = hora.split(":").map(Number);
+  return new Date(ano, mes - 1, dia, horaNum, minutoNum, 0, 0);
+}
+
+function isSlotPassado(dataReserva: string, horario: string): boolean {
+  const agora = new Date();
+  const dataHora = parseDateLocal(dataReserva, horario);
+  return dataHora <= agora;
+}
+
 const HORARIOS = [
   "07:00",
   "08:00",
@@ -112,6 +124,13 @@ export function TelaLinhaDoTempo() {
   });
 
   function aoBloqueioPress(quadraId: string, horario: string) {
+    if (isSlotPassado(diaSelecionado.data, horario)) {
+      return Alert.alert(
+        "Horário passado",
+        "Não é possível bloquear horários que já passaram.",
+      );
+    }
+
     Alert.alert("Bloquear horário", `Bloquear ${horario} para manutenção?`, [
       { text: "Cancelar", style: "cancel" },
       {
@@ -146,6 +165,15 @@ export function TelaLinhaDoTempo() {
         "Horário bloqueado",
         `Esta quadra está bloqueada neste horário.`,
       );
+    }
+
+    if (isSlotPassado(reserva.data_reserva, reserva.hora_inicio)) {
+      const nomeUsuario = reserva.usuario?.nome || "Cliente não informado";
+      const horarioTexto = `${reserva.hora_inicio} - ${reserva.hora_fim}`;
+      const mensagem = `Usuário: ${nomeUsuario}\nHorário: ${horarioTexto}`;
+      return Alert.alert("Horário concluído", mensagem, [
+        { text: "Fechar", style: "cancel" },
+      ]);
     }
 
     const nomeUsuario = reserva.usuario?.nome || "Cliente não informado";
@@ -244,6 +272,7 @@ export function TelaLinhaDoTempo() {
                   </View>
                   {(agenda?.quadras || []).map((quadra) => {
                     const status = statusSlot(quadra.id, horario);
+                    const passado = isSlotPassado(diaSelecionado.data, horario);
                     return (
                       <TouchableOpacity
                         key={quadra.id}
@@ -254,6 +283,13 @@ export function TelaLinhaDoTempo() {
                           status === "livre" && estilos.slotLivre,
                         ]}
                         onPress={() => {
+                          if (passado && status === "livre") {
+                            return Alert.alert(
+                              "Horário anterior",
+                              "Este horário já passou e não pode ser alterado.",
+                            );
+                          }
+
                           if (status === "livre") {
                             aoBloqueioPress(quadra.id, horario);
                           } else if (status === "reservado") {
