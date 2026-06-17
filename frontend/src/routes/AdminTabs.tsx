@@ -1,17 +1,18 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text } from 'react-native';
-import { Cores } from '../styles/tema';
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { View, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Cores } from "../styles/tema";
 
-import { TelaDashboard } from '../screens/admin/TelaDashboard';
-import { TelaLinhaDoTempo } from '../screens/admin/TelaLinhaDoTempo';
-import { TelaGerenciarQuadras } from '../screens/admin/TelaGerenciarQuadras';
-import { TelaFormularioQuadra } from '../screens/admin/TelaFormularioQuadra';
-import { TelaGerenciarEsportes } from '../screens/admin/TelaGerenciarEsportes';
-import { TelaFormularioEsporte } from '../screens/admin/TelaFormularioEsporte';
-import { TelaAjustesArena } from '../screens/admin/TelaAjustesArena';
-import { TelaPerfilAdmin } from '../screens/admin/TelaPerfilAdmin';
+import { TelaDashboard } from "../screens/admin/TelaDashboard";
+import { TelaLinhaDoTempo } from "../screens/admin/TelaLinhaDoTempo";
+import { TelaGerenciarQuadras } from "../screens/admin/TelaGerenciarQuadras";
+import { TelaFormularioQuadra } from "../screens/admin/TelaFormularioQuadra";
+import { TelaGerenciarEsportes } from "../screens/admin/TelaGerenciarEsportes";
+import { TelaFormularioEsporte } from "../screens/admin/TelaFormularioEsporte";
+import { TelaAjustesArena } from "../screens/admin/TelaAjustesArena";
+import { TelaPerfilAdmin } from "../screens/admin/TelaPerfilAdmin";
 
 const Tab = createBottomTabNavigator();
 const QuadrasStack = createNativeStackNavigator();
@@ -21,8 +22,14 @@ const AjustesStack = createNativeStackNavigator();
 function QuadrasNavigator() {
   return (
     <QuadrasStack.Navigator screenOptions={{ headerShown: false }}>
-      <QuadrasStack.Screen name="ListaQuadras" component={TelaGerenciarQuadras} />
-      <QuadrasStack.Screen name="FormularioQuadra" component={TelaFormularioQuadra} />
+      <QuadrasStack.Screen
+        name="ListaQuadras"
+        component={TelaGerenciarQuadras}
+      />
+      <QuadrasStack.Screen
+        name="FormularioQuadra"
+        component={TelaFormularioQuadra}
+      />
     </QuadrasStack.Navigator>
   );
 }
@@ -30,8 +37,14 @@ function QuadrasNavigator() {
 function EsportesNavigator() {
   return (
     <EsportesStack.Navigator screenOptions={{ headerShown: false }}>
-      <EsportesStack.Screen name="ListaEsportes" component={TelaGerenciarEsportes} />
-      <EsportesStack.Screen name="FormularioEsporte" component={TelaFormularioEsporte} />
+      <EsportesStack.Screen
+        name="ListaEsportes"
+        component={TelaGerenciarEsportes}
+      />
+      <EsportesStack.Screen
+        name="FormularioEsporte"
+        component={TelaFormularioEsporte}
+      />
     </EsportesStack.Navigator>
   );
 }
@@ -46,16 +59,30 @@ function AjustesNavigator() {
   );
 }
 
-function TabIconAdmin({ nome, icone, focado }: { nome: string; icone: string; focado: boolean }) {
+function TabIconAdmin({
+  nome,
+  icone,
+  focado,
+}: {
+  nome: string;
+  icone: keyof typeof Ionicons.glyphMap;
+  focado: boolean;
+}) {
   return (
-    <View style={{ alignItems: 'center' }}>
-      <Text style={{ fontSize: 20 }}>{icone}</Text>
-      <Text style={{
-        fontSize: 9,
-        color: focado ? Cores.primaria : Cores.textoSecundario,
-        marginTop: 2,
-        fontWeight: focado ? '600' : '400',
-      }}>
+    <View style={{ alignItems: "center" }}>
+      <Ionicons
+        name={icone}
+        size={22}
+        color={focado ? Cores.primaria : Cores.textoSecundario}
+      />
+      <Text
+        style={{
+          fontSize: 9,
+          color: focado ? Cores.primaria : Cores.textoSecundario,
+          marginTop: 2,
+          fontWeight: focado ? "600" : "400",
+        }}
+      >
         {nome}
       </Text>
     </View>
@@ -81,27 +108,47 @@ export function AdminTabs() {
       <Tab.Screen
         name="Dashboard"
         component={TelaDashboard}
-        options={{ tabBarIcon: ({ focused }) => <TabIconAdmin nome="Dashboard" icone="📊" focado={focused} /> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIconAdmin nome="Dashboard" icone="analytics" focado={focused} />
+          ),
+        }}
       />
       <Tab.Screen
         name="LinhaDoTempo"
         component={TelaLinhaDoTempo}
-        options={{ tabBarIcon: ({ focused }) => <TabIconAdmin nome="Agenda" icone="📅" focado={focused} /> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIconAdmin nome="Agenda" icone="calendar" focado={focused} />
+          ),
+        }}
       />
       <Tab.Screen
         name="GerenciarQuadras"
         component={QuadrasNavigator}
-        options={{ tabBarIcon: ({ focused }) => <TabIconAdmin nome="Quadras" icone="🏟️" focado={focused} /> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIconAdmin nome="Quadras" icone="trophy" focado={focused} />
+          ),
+        }}
       />
       <Tab.Screen
         name="GerenciarEsportes"
         component={EsportesNavigator}
-        options={{ tabBarIcon: ({ focused }) => <TabIconAdmin nome="Esportes" icone="⚽" focado={focused} /> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIconAdmin nome="Esportes" icone="football" focado={focused} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Ajustes"
         component={AjustesNavigator}
-        options={{ tabBarIcon: ({ focused }) => <TabIconAdmin nome="Ajustes" icone="⚙️" focado={focused} /> }}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabIconAdmin nome="Ajustes" icone="settings" focado={focused} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
