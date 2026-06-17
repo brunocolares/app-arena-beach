@@ -69,6 +69,7 @@ export function TelaFormularioQuadra() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quadras-admin"] });
       queryClient.invalidateQueries({ queryKey: ["quadras"] });
+      queryClient.invalidateQueries({ queryKey: ["esportes"] });
       Alert.alert(
         "Sucesso",
         quadraExistente ? "Quadra atualizada!" : "Quadra criada!",

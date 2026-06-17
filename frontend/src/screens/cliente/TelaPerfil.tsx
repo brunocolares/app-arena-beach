@@ -164,7 +164,7 @@ export function TelaPerfil() {
           onPress={() => setAbaAtiva('dados')}
         >
           <Text style={[estilos.textoAba, abaAtiva === 'dados' && estilos.textoAbaAtivo]}>
-            ✏️ Meus Dados
+            Meus Dados
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -172,7 +172,7 @@ export function TelaPerfil() {
           onPress={() => setAbaAtiva('senha')}
         >
           <Text style={[estilos.textoAba, abaAtiva === 'senha' && estilos.textoAbaAtivo]}>
-            🔒 Alterar Senha
+            Alterar Senha
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,18 +1,23 @@
-import React from 'react';
+import React from "react";
 import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Alert
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
-import { api } from '../../shared/api';
-import { Quadra } from '../../shared/tipos';
-import { Cores, Espacamento, Tipografia } from '../../styles/tema';
-import { AntDesign } from '@expo/vector-icons';
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigation } from "@react-navigation/native";
+import { api } from "../../shared/api";
+import { Quadra } from "../../shared/tipos";
+import { Cores, Espacamento, Tipografia } from "../../styles/tema";
+import { AntDesign } from "@expo/vector-icons";
 
 async function buscarTodasQuadras(): Promise<Quadra[]> {
-  const resposta = await api.get('/quadras');
+  const resposta = await api.get("/quadras");
   return resposta.data;
 }
 
@@ -26,14 +31,18 @@ export function TelaGerenciarQuadras() {
   const queryClient = useQueryClient();
 
   const { data: quadras, isLoading } = useQuery({
-    queryKey: ['quadras-admin'],
+    queryKey: ["quadras-admin"],
     queryFn: buscarTodasQuadras,
   });
 
   const mutacaoAlternar = useMutation({
-    mutationFn: ({ id, ativa }: { id: string; ativa: boolean }) => alternarAtivacao(id, ativa),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quadras-admin'] }),
-    onError: (e: Error) => Alert.alert('Erro', e.message),
+    mutationFn: ({ id, ativa }: { id: string; ativa: boolean }) =>
+      alternarAtivacao(id, ativa),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quadras-admin"] });
+      queryClient.invalidateQueries({ queryKey: ["esportes"] });
+    },
+    onError: (e: Error) => Alert.alert("Erro", e.message),
   });
 
   return (
@@ -42,7 +51,9 @@ export function TelaGerenciarQuadras() {
         <Text style={estilos.tituloCabecalho}>Gerenciar Quadras</Text>
         <TouchableOpacity
           style={estilos.botaoAdicionar}
-          onPress={() => navegacao.navigate('FormularioQuadra', { quadra: null })}
+          onPress={() =>
+            navegacao.navigate("FormularioQuadra", { quadra: null })
+          }
         >
           <Text style={estilos.textoBotaoAdicionar}>+ Nova</Text>
         </TouchableOpacity>
@@ -61,23 +72,39 @@ export function TelaGerenciarQuadras() {
           renderItem={({ item }) => (
             <View style={estilos.card}>
               <View style={estilos.linhaCard}>
-                <View style={[estilos.dotStatus, item.ativa ? estilos.dotAtiva : estilos.dotInativa]} />
+                <View
+                  style={[
+                    estilos.dotStatus,
+                    item.ativa ? estilos.dotAtiva : estilos.dotInativa,
+                  ]}
+                />
                 <View style={estilos.infoCard}>
                   <Text style={estilos.nomeQuadra}>{item.nome_quadra}</Text>
-                  <Text style={estilos.precoQuadra}>R$ {item.preco_hora}/h</Text>
+                  <Text style={estilos.precoQuadra}>
+                    R$ {item.preco_hora}/h
+                  </Text>
                 </View>
                 <View style={estilos.acoesCard}>
                   <TouchableOpacity
                     style={estilos.botaoEditar}
-                    onPress={() => navegacao.navigate('FormularioQuadra', { quadra: item })}
+                    onPress={() =>
+                      navegacao.navigate("FormularioQuadra", { quadra: item })
+                    }
                   >
                     <AntDesign name="edit" size={24} color={Cores.texto} />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[estilos.botaoToggle, item.ativa ? estilos.botaoDesativar : estilos.botaoAtivar]}
-                    onPress={() => mutacaoAlternar.mutate({ id: item.id, ativa: item.ativa })}
+                    style={[
+                      estilos.botaoToggle,
+                      item.ativa ? estilos.botaoDesativar : estilos.botaoAtivar,
+                    ]}
+                    onPress={() =>
+                      mutacaoAlternar.mutate({ id: item.id, ativa: item.ativa })
+                    }
                   >
-                    <Text style={estilos.textoToggle}>{item.ativa ? 'Desativar' : 'Ativar'}</Text>
+                    <Text style={estilos.textoToggle}>
+                      {item.ativa ? "Desativar" : "Ativar"}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -98,9 +125,13 @@ export function TelaGerenciarQuadras() {
               <Text style={estilos.textoVazio}>Nenhuma quadra cadastrada</Text>
               <TouchableOpacity
                 style={estilos.botaoCadastrar}
-                onPress={() => navegacao.navigate('FormularioQuadra', { quadra: null })}
+                onPress={() =>
+                  navegacao.navigate("FormularioQuadra", { quadra: null })
+                }
               >
-                <Text style={estilos.textoBotaoCadastrar}>Cadastrar primeira quadra</Text>
+                <Text style={estilos.textoBotaoCadastrar}>
+                  Cadastrar primeira quadra
+                </Text>
               </TouchableOpacity>
             </View>
           }
@@ -113,9 +144,9 @@ export function TelaGerenciarQuadras() {
 const estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: Cores.fundo },
   cabecalho: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Espacamento.md,
     paddingVertical: Espacamento.md,
     backgroundColor: Cores.fundoCard,
@@ -129,8 +160,13 @@ const estilos = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
   },
-  textoBotaoAdicionar: { color: Cores.texto, fontWeight: '700', fontSize: 14 },
-  centralizado: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  textoBotaoAdicionar: { color: Cores.texto, fontWeight: "700", fontSize: 14 },
+  centralizado: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
   lista: { padding: Espacamento.md, paddingBottom: Espacamento.xxl },
   card: {
     backgroundColor: Cores.fundoCard,
@@ -141,21 +177,21 @@ const estilos = StyleSheet.create({
     borderColor: Cores.borda,
     gap: 10,
   },
-  linhaCard: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  linhaCard: { flexDirection: "row", alignItems: "center", gap: 10 },
   dotStatus: { width: 10, height: 10, borderRadius: 5 },
   dotAtiva: { backgroundColor: Cores.sucesso },
   dotInativa: { backgroundColor: Cores.erro },
   infoCard: { flex: 1 },
-  nomeQuadra: { color: Cores.texto, fontSize: 15, fontWeight: '700' },
+  nomeQuadra: { color: Cores.texto, fontSize: 15, fontWeight: "700" },
   precoQuadra: { color: Cores.primaria, fontSize: 13, marginTop: 2 },
-  acoesCard: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  acoesCard: { flexDirection: "row", gap: 8, alignItems: "center" },
   botaoEditar: {
     width: 36,
     height: 36,
     backgroundColor: Cores.fundoInput,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   textoBotaoEditar: { fontSize: 16 },
   botaoToggle: {
@@ -163,10 +199,18 @@ const estilos = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
   },
-  botaoAtivar: { backgroundColor: 'rgba(76,175,80,0.2)', borderWidth: 1, borderColor: Cores.sucesso },
-  botaoDesativar: { backgroundColor: 'rgba(255,82,82,0.15)', borderWidth: 1, borderColor: Cores.erro },
-  textoToggle: { color: Cores.texto, fontSize: 12, fontWeight: '600' },
-  tagContainer: { flexDirection: 'row', gap: 6 },
+  botaoAtivar: {
+    backgroundColor: "rgba(76,175,80,0.2)",
+    borderWidth: 1,
+    borderColor: Cores.sucesso,
+  },
+  botaoDesativar: {
+    backgroundColor: "rgba(255,82,82,0.15)",
+    borderWidth: 1,
+    borderColor: Cores.erro,
+  },
+  textoToggle: { color: Cores.texto, fontSize: 12, fontWeight: "600" },
+  tagContainer: { flexDirection: "row", gap: 6 },
   tag: {
     backgroundColor: Cores.fundoInput,
     paddingHorizontal: 8,
@@ -183,5 +227,5 @@ const estilos = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
   },
-  textoBotaoCadastrar: { color: Cores.texto, fontWeight: '600' },
+  textoBotaoCadastrar: { color: Cores.texto, fontWeight: "600" },
 });

@@ -256,7 +256,7 @@ export function TelaDashboard() {
         <View>
           <Text style={estilos.tituloCabecalho}>Dashboard</Text>
           <Text style={estilos.subtituloCabecalho}>
-            Olá, {usuario?.nome?.split(" ")[0]} 👋
+            Olá, {usuario?.nome?.split(" ")[0]}
           </Text>
         </View>
         <TouchableOpacity

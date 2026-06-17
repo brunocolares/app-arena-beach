@@ -36,7 +36,11 @@ export function TelaHome() {
     isLoading,
     isError,
     refetch,
-  } = useQuery({ queryKey: ["esportes"], queryFn: buscarEsportes });
+  } = useQuery({
+    queryKey: ["esportes"],
+    queryFn: buscarEsportes,
+    refetchOnMount: true,
+  });
 
   function aoSelecionarEsporte(esporte: Esporte) {
     navegacao.navigate("Quadras", { esporte });
@@ -54,7 +58,7 @@ export function TelaHome() {
   if (isError) {
     return (
       <View style={[estilos.container, estilos.centralizado]}>
-        <Text style={estilos.textoErro}>⚠️ Erro ao carregar esportes</Text>
+        <Text style={estilos.textoErro}>Erro ao carregar esportes</Text>
         <TouchableOpacity onPress={() => refetch()} style={estilos.botaoTentar}>
           <Text style={estilos.textoBotaoTentar}>Tentar novamente</Text>
         </TouchableOpacity>
@@ -79,8 +83,8 @@ export function TelaHome() {
       <View style={estilos.banner}>
         <Text style={estilos.bannerTexto}>
           {autenticado
-            ? `Olá, ${usuario?.nome ? usuario.nome.split(" ")[0] : ""}! 👋`
-            : "🏆 Reserve sua quadra em segundos"}
+            ? `Olá, ${usuario?.nome ? usuario.nome.split(" ")[0] : ""}!`
+            : "Reserve sua quadra em segundos!"}
         </Text>
         {!autenticado && (
           <Text style={estilos.bannerSub}>
